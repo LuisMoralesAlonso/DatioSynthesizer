@@ -37,10 +37,10 @@ def independent_mode(dataset_file: object, alone=True) -> dict:
     dd['distribution'] = {}
     dd['distribution']['probs'],dd['distribution']['bins'] = attributes.get_distribution(datos, dd, describer)
     #First noise injection for differential privacy
-    dd['distribution']['probs_laplace'] = attributes.inject_laplace_noise(datos, dd)
+    dd['distribution']['probs'] = attributes.inject_laplace_noise(datos, dd)
     if alone:
-        dd = dask.optimize(dd)
-        dd = dask.compute(dd)
+        dd = dask.optimize(dd)[0]
+        dd = dask.compute(dd)[0]
     return dd, datos
 
 def random_mode(dataset_file: object) -> dict:
@@ -52,7 +52,9 @@ def random_mode(dataset_file: object) -> dict:
         uniform_distribution = utils.normalize_given_distribution(uniform_distribution).tolist()
         dd['distribution']['probs'][attr] = uniform_distribution
         dd['missing_rate'][attr] = 0
-    return dask.compute(dd), data
+    dd = dask.optimize(dd)[0]
+    dd = dask.compute(dd)[0]
+    return dd, data
 
 
 def correlated_mode(dataset_file: object) -> dict:
@@ -65,7 +67,9 @@ def correlated_mode(dataset_file: object) -> dict:
     dd['bayesian_network'] = bayesian_network
     #dd['conditional_probabilities'] = construct_noisy_conditional_distributions(
     #    bayesian_network, data['encoded_dataset'], config.epsilon)
-    return dask.compute(dd), data
+    dd = dask.optimize(dd)[0]
+    dd = dask.compute(dd)[0]
+    return dd, data
 
 
 def dropna(data: df):

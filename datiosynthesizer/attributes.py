@@ -30,11 +30,10 @@ def get_maxes(datos: dict, dd: dict, describer: dict):
     return maxes
 
 
-@dask.delayed
 def get_missing_rates(datos: dict, dd: dict, describer: dict):
     rates = {}
     for attr in dd['meta']['attrs']:
-        rates[attr] = float((datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size)
+        rates[attr] = dask.delayed(float)((datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size)
     return rates
 
 
@@ -101,7 +100,7 @@ def get_distribution(datos: dict, dd: dict, describer: dict):
             bins[attr] = get_noncat_bins(distribution)
     return probs, bins
 
-@dask.delayed
+
 def inject_laplace_noise(datos: dict, dd: dict):
     dists_copy = copy.copy(dd['distribution']['probs'])
     for column in dd['meta']['attrs']:
@@ -111,15 +110,15 @@ def inject_laplace_noise(datos: dict, dd: dict):
                                                                                valid_attrs = dd['meta']['num_attrs_in_BN'])
     return dists_copy
 
-
-def inject_laplace_noise_column(size, dist: dict, column, epsilon=0.1, valid_attrs=10):
+@dask.delayed
+def inject_laplace_noise_column(col_size, dist: dict, column, epsilon=0.1, valid_attrs=10):
     dist_copy = copy.copy(dist)
     if epsilon > 0:
-        noisy_scale = valid_attrs / (epsilon * size)
+        noisy_scale = valid_attrs / (epsilon * col_size)
         loc = 0
-        scale = noisy_scale
-        size = len(dist_copy)
-        laplace_noises = np.random.laplace(loc, scale, size)
+        local_scale = noisy_scale
+        local_size = len(dist_copy)
+        laplace_noises = np.random.laplace(loc, scale=local_scale, size=local_size)
         noisy_distribution = np.asarray(dist_copy) + laplace_noises
         normalized = utils.normalize_given_distribution(noisy_distribution)
         return normalized

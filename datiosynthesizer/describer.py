@@ -22,37 +22,14 @@ def init_describer(seed: int = 0, epsilon: float = 0.1, attribute_to_datatype: d
                                               attribute_to_datatype.items()}
     describer['categories'] = attribute_to_is_categorical
     describer['key_candidates'] = attribute_to_is_candidate_key
-    init_random(seed)
-
-
-def init_meta(datos: dict, describer: dict):
-    columns = list(describer['datatypes'].keys())
-    non_categorical_string_attributes = [attr for attr in columns if
-                                         (attr not in describer['categories'])
-                                         and (describer['datatypes'][attr] is config.DataType.STRING)]
-    attributes_in_bn = list(set(columns) - set(describer['key_candidates']) - set(non_categorical_string_attributes))
-    num_attributes_in_bn = len(attributes_in_bn)
-    return {"num_tuples": datos['data'].shape[0],
-                                   "num_attrs": datos['data'].shape[1],
-                                   "num_attrs_in_BN": num_attributes_in_bn,
-                                   "attrs": columns,
-                                   "key_candidates": describer['key_candidates'],
-                                   "non_cat_string": non_categorical_string_attributes,
-                                   "attrs_in_BN": attributes_in_bn}
-
-#TODO: Add support for S3, HDFS, etc and other formats like parquet
-def read_csv(dataset_file: object) -> df.DataFrame:
-    data = df.read_csv(dataset_file, skipinitialspace=True)
-    data['ssn'] = data['ssn'].map(lambda x: int(x.replace('-', '')),meta=('ssn',int))
-    #TODO: Procesar las columnas declaradas como fechas
-    return data
+    init_random(config.seed)
 
 
 def independent_mode(dataset_file: object, alone=True) -> dict:
     dd = {}
     datos= {}
     datos['data'] = read_csv(dataset_file)
-    datos['dropna'] = datos['data'].dropna()
+    datos['dropna'] = dropna(datos['data'])
     dd['meta'] = init_meta(datos, describer)
     dd['mins'] = attributes.get_mins(datos, dd, describer)
     dd['maxes'] = attributes.get_maxes(datos, dd, describer)
@@ -60,9 +37,10 @@ def independent_mode(dataset_file: object, alone=True) -> dict:
     dd['distribution'] = {}
     dd['distribution']['probs'],dd['distribution']['bins'] = attributes.get_distribution(datos, dd, describer)
     #First noise injection for differential privacy
-    dd = attributes.inject_laplace_noise(datos, dd)
+    dd['distribution']['probs_laplace'] = attributes.inject_laplace_noise(datos, dd)
     if alone:
-        dd = dask.compute(dask.optimize(dd))
+        dd = dask.optimize(dd)
+        dd = dask.compute(dd)
     return dd, datos
 
 def random_mode(dataset_file: object) -> dict:
@@ -83,12 +61,41 @@ def correlated_mode(dataset_file: object) -> dict:
     if data['encoded_dataset'].shape[1] < 2:
         raise Exception("Constructing Bayesian Network needs more attributes.")
 
-    #bayesian_network = greedy_bayes(data['encoded_dataset'], config.k, config.epsilon)
-    #dd['bayesian_network'] = bayesian_network
+    bayesian_network = greedy_bayes(data['encoded_dataset'], config.k, config.epsilon)
+    dd['bayesian_network'] = bayesian_network
     #dd['conditional_probabilities'] = construct_noisy_conditional_distributions(
     #    bayesian_network, data['encoded_dataset'], config.epsilon)
     return dask.compute(dd), data
 
+
+def dropna(data: df):
+    dropna = {}
+    for attr in data.columns.tolist():
+        dropna[attr] = data[attr].dropna()
+    return dropna
+
+#TODO: Add support for S3, HDFS, etc and other formats like parquet
+def read_csv(dataset_file: object) -> df.DataFrame:
+    data = df.read_csv(dataset_file, skipinitialspace=True, na_values=config.null_values)
+    data['ssn'] = data['ssn'].map(lambda x: int(x.replace('-', '')),meta=('ssn',int))
+    #TODO: Procesar las columnas declaradas como fechas
+    return data
+
+
+def init_meta(datos: dict, describer: dict):
+    columns = list(describer['datatypes'].keys())
+    non_categorical_string_attributes = [attr for attr in columns if
+                                         (attr not in describer['categories'])
+                                         and (describer['datatypes'][attr] is config.DataType.STRING)]
+    attributes_in_bn = list(set(columns) - set(describer['key_candidates']) - set(non_categorical_string_attributes))
+    num_attributes_in_bn = len(attributes_in_bn)
+    return {"num_tuples": datos['data'].shape[0],
+                                   "num_attrs": datos['data'].shape[1],
+                                   "num_attrs_in_BN": num_attributes_in_bn,
+                                   "attrs": columns,
+                                   "key_candidates": describer['key_candidates'],
+                                   "non_cat_string": non_categorical_string_attributes,
+                                   "attrs_in_BN": attributes_in_bn}
 
 def encode_dataset_into_binning_indices(dd: dict, data: df, bn_attrs: [], cat_attrs: []):
     """Before constructing Bayesian network, encode input dataset into binning indices."""

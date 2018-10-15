@@ -30,11 +30,11 @@ def get_maxes(datos: dict, dd: dict, describer: dict):
     return maxes
 
 
+@dask.delayed
 def get_missing_rates(datos: dict, dd: dict, describer: dict):
     rates = {}
     for attr in dd['meta']['attrs']:
-        rates[attr] = dask.delayed(float)(
-            (datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size)
+        rates[attr] = float((datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size)
     return rates
 
 
@@ -42,20 +42,22 @@ def get_missing_rates(datos: dict, dd: dict, describer: dict):
 def get_cat_probs(dist):
     dist_copy = copy.copy(dist)
     dist_copy.sort_index(inplace=True)
-    return utils.normalize_given_distribution(dist_copy)
+    probs = utils.normalize_given_distribution(dist_copy)
+    return probs
 
 
 @dask.delayed
 def get_cat_bins(dist):
     dist_copy = copy.copy(dist)
     dist_copy.sort_index(inplace=True)
-    return np.array(dist_copy.index).tolist()
-
+    bins = np.array(dist_copy.index).tolist()
+    return bins
 
 @dask.delayed
 def get_noncat_probs(dist):
     dist_copy = copy.copy(dist[1])
-    return utils.normalize_given_distribution(dist_copy)
+    probs = utils.normalize_given_distribution(dist_copy)
+    return probs
 
 
 @dask.delayed
@@ -63,7 +65,8 @@ def get_noncat_bins(dist):
     dist_copy = copy.copy(dist[0])
     bins = dist_copy[:-1]
     bins[0] = bins[0] - 0.001 * (bins[1] - bins[0])
-    return bins.tolist()
+    bins = bins.tolist()
+    return bins
 
 
 def get_histograms(delayed, min, max, size):
@@ -98,28 +101,28 @@ def get_distribution(datos: dict, dd: dict, describer: dict):
             bins[attr] = get_noncat_bins(distribution)
     return probs, bins
 
-
-def inject_laplace_noise(datos: dict, dd: dict):
-    dd_copy = copy.copy(dd)
-    for column in dd_copy['meta']['attrs']:
-        dd_copy['distribution']['probs'][column] = inject_laplace_noise_column(datos['data'][column].size,
-                                                                               dd_copy['distribution']['probs'][column],
-                                                                               column, config.epsilon,
-                                                                               dd_copy['meta']['num_attrs_in_BN'])
-    return dd_copy
-
-
 @dask.delayed
-def inject_laplace_noise_column(size, dist: dict, column, epsilon, num_valid_attributes):
+def inject_laplace_noise(datos: dict, dd: dict):
+    dists_copy = copy.copy(dd['distribution']['probs'])
+    for column in dd['meta']['attrs']:
+        dists_copy[column] = inject_laplace_noise_column(datos['data'][column].size,
+                                                                               dd['distribution']['probs'][column],
+                                                                               column, epsilon=config.epsilon,
+                                                                               valid_attrs = dd['meta']['num_attrs_in_BN'])
+    return dists_copy
+
+
+def inject_laplace_noise_column(size, dist: dict, column, epsilon=0.1, valid_attrs=10):
     dist_copy = copy.copy(dist)
     if epsilon > 0:
-        noisy_scale = num_valid_attributes / (epsilon * size)
-        loc = 0.0
+        noisy_scale = valid_attrs / (epsilon * size)
+        loc = 0
         scale = noisy_scale
         size = len(dist_copy)
         laplace_noises = np.random.laplace(loc, scale, size)
-        noisy_distribution = np.asarray(dist) + laplace_noises
-        return utils.normalize_given_distribution(noisy_distribution)
+        noisy_distribution = np.asarray(dist_copy) + laplace_noises
+        normalized = utils.normalize_given_distribution(noisy_distribution)
+        return normalized
 
 
 def encode_chunk_into_binning_indices(part, bn_cols: [], cat_cols: [], bin_indices: dict):

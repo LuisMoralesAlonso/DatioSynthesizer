@@ -1,0 +1,59 @@
+[
+    [
+        {
+            "meta": {
+                "num_tuples": 32561,
+                "num_attrs": 7,
+                "num_attrs_in_BN": 6,
+                "attrs": [
+                    "ssn",
+                    "age",
+                    "education",
+                    "marital-status",
+                    "relationship",
+                    "sex",
+                    "income"
+                ],
+                "key_candidates": [
+                    "ssn"
+                ],
+                "non_cat_string": [],
+                "attrs_in_BN": [
+                    "income",
+                    "sex",
+                    "relationship",
+                    "age",
+                    "marital-status",
+                    "education"
+                ]
+            },
+            "mins": {
+                "ssn": 123456789.0,
+                "age": 17.0,
+                "education": 3.0,
+                "marital-status": 7.0,
+                "relationship": 4.0,
+                "sex": 4.0,
+                "income": 4.0
+            },
+            "maxes": {
+                "ssn": 999999999.0,
+                "age": 90.0,
+                "education": 12.0,
+                "marital-status": 21.0,
+                "relationship": 14.0,
+                "sex": 6.0,
+                "income": 5.0
+            },
+            "missing_rates": {
+                "ssn": 0.0,
+                "age": 0.09867633057952765,
+                "education": 0.3196462025122079,
+                "marital-status": 0.2171309234974356,
+                "relationship": 0.23128896532661775,
+                "sex": 0.4344154049322809,
+                "income": 0.44611651976290656
+            },
+            "distribution": {
+                "probs": {
+                    "ssn": 

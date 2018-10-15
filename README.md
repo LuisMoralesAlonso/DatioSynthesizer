@@ -1,9 +1,13 @@
 # DataSynthesizer
 
 ### Dask-compatible
-This fork of DataSynthesizer is an effort to migrate it to use dask as the underlying framework instead of pandas. This way I pretend DataSynthesizer to become both distributable and out-of-core compatible.
+This replica of DataSynthesizer is an effort to migrate it to use dask as the underlying framework instead of pandas. This way I pretend DataSynthesizer to become both distributable and out-of-core compatible.
 
 I've made substantial changes to the original code to be more functional, and for that reason still unstable, so use under your own responsability.
+
+You can find the original repo here:
+
+https://github.com/DataResponsibly/DataSynthesizer
 
 ### Usage
 

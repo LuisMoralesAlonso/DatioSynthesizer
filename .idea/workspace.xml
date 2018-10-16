@@ -2,13 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d64aa58b-a768-47e9-8181-f015b0e46730" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datiosynthesizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datiosynthesizer/attributes.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer/attributes.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datiosynthesizer/describer.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer/describer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datiosynthesizer/privbayes.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer/privbayes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datiosynthesizer/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/privbayes-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/.ipynb_checkpoints/privbayes-checkpoint.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/notebooks/privbayes.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/privbayes.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/independent_attribute_mode/adult_ssn.json" beforeDir="false" afterPath="$PROJECT_DIR$/out/independent_attribute_mode/adult_ssn.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -36,26 +35,14 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/datiosynthesizer/describer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-225">
-              <caret line="71" column="19" lean-forward="true" selection-start-line="71" selection-start-column="19" selection-end-line="71" selection-end-column="19" />
+            <state relative-caret-position="128">
+              <caret line="66" column="5" selection-start-line="66" selection-start-column="5" selection-end-line="66" selection-end-column="5" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
-                <marker date="1539625505248" expanded="true" signature="3104:3222" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/datiosynthesizer/privbayes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1496">
-              <caret line="16" column="14" selection-start-line="16" selection-start-column="14" selection-end-line="16" selection-end-column="14" />
-              <folding>
-                <element signature="e#0#13#0" expanded="true" />
+                <marker date="1539655695379" expanded="true" signature="3106:3224" ph="..." />
               </folding>
             </state>
           </provider>
@@ -64,12 +51,36 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/datiosynthesizer/attributes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="177">
+            <state relative-caret-position="36">
               <caret line="116" selection-start-line="116" selection-end-line="116" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
                 <marker date="1539624678888" expanded="true" signature="1172:1368" ph="..." />
                 <marker date="1539624678888" expanded="true" signature="2266:2492" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/datiosynthesizer/privbayes.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="374">
+              <caret line="134" column="40" lean-forward="true" selection-start-line="134" selection-start-column="40" selection-end-line="134" selection-end-column="40" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/datiosynthesizer/utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="220">
+              <caret line="25" column="112" selection-start-line="25" selection-start-column="112" selection-end-line="25" selection-end-column="112" />
+              <folding>
+                <element signature="e#0#11#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -99,15 +110,15 @@
         <option value="$PROJECT_DIR$/datiosynthesizer/__init__.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/utils/utils.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/attributes/__init__.py" />
-        <option value="$PROJECT_DIR$/datiosynthesizer/privbayes.py" />
-        <option value="$PROJECT_DIR$/datiosynthesizer/utils.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/../MiDataSynthesizer/DataSynthesizer/DataDescriber.py" />
-        <option value="$USER_HOME$/DataSynthesizer/DataSynthesizer/DataDescriber.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/config.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/attributes.py" />
+        <option value="$PROJECT_DIR$/datiosynthesizer/privbayes.py" />
+        <option value="$USER_HOME$/DataSynthesizer/DataSynthesizer/DataDescriber.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/describer.py" />
+        <option value="$PROJECT_DIR$/datiosynthesizer/utils.py" />
       </list>
     </option>
   </component>
@@ -266,7 +277,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32890365" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49973643" weight="0.14650388" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.49920928" visible="true" weight="0.34961155" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.49920928" visible="true" weight="0.5837958" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32890365" />
@@ -420,16 +431,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/datiosynthesizer/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="110">
-          <caret line="13" selection-start-line="13" selection-end-line="13" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/miniconda3/envs/datasynthesizer/lib/python3.7/site-packages/pandas/core/common.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="236">
@@ -484,9 +485,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/datiosynthesizer/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="18" column="12" lean-forward="true" selection-start-line="18" selection-start-column="12" selection-end-line="18" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/datiosynthesizer/attributes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
+        <state relative-caret-position="36">
           <caret line="116" selection-start-line="116" selection-end-line="116" />
           <folding>
             <element signature="e#0#40#0" expanded="true" />
@@ -496,10 +504,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/datiosynthesizer/config.py">
+    <entry file="file://$PROJECT_DIR$/datiosynthesizer/describer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="18" column="12" lean-forward="true" selection-start-line="18" selection-start-column="12" selection-end-line="18" selection-end-column="12" />
+        <state relative-caret-position="128">
+          <caret line="66" column="5" selection-start-line="66" selection-start-column="5" selection-end-line="66" selection-end-column="5" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+            <marker date="1539655695379" expanded="true" signature="3106:3224" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -512,21 +524,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/datiosynthesizer/privbayes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1496">
-          <caret line="16" column="14" selection-start-line="16" selection-start-column="14" selection-end-line="16" selection-end-column="14" />
+        <state relative-caret-position="374">
+          <caret line="134" column="40" lean-forward="true" selection-start-line="134" selection-start-column="40" selection-end-line="134" selection-end-column="40" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/datiosynthesizer/describer.py">
+    <entry file="file://$PROJECT_DIR$/datiosynthesizer/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-225">
-          <caret line="71" column="19" lean-forward="true" selection-start-line="71" selection-start-column="19" selection-end-line="71" selection-end-column="19" />
+        <state relative-caret-position="220">
+          <caret line="25" column="112" selection-start-line="25" selection-start-column="112" selection-end-line="25" selection-end-column="112" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1539625505248" expanded="true" signature="3104:3222" ph="..." />
           </folding>
         </state>
       </provider>

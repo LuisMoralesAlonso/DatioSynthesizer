@@ -105,10 +105,10 @@ def greedy_bayes(dataset, k=0, epsilon=0):
     if not k:
         k = calculate_k(num_attributes, num_tuples)
 
-    attributes = set(dataset.columns)
+    attributes = set(dataset.keys())
     N = []
     V = set()
-    V.add(random.choice(dataset.columns))
+    V.add(random.choice(attributes))
 
     print('================== Constructing Bayesian Network ==================')
     for i in range(1, len(attributes)):

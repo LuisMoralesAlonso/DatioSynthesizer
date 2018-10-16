@@ -63,8 +63,8 @@ def correlated_mode(dataset_file: object) -> dict:
     if data['encoded_dataset'].shape[1] < 2:
         raise Exception("Constructing Bayesian Network needs more attributes.")
 
-    bayesian_network = greedy_bayes(data['encoded_dataset'], config.k, config.epsilon)
-    dd['bayesian_network'] = bayesian_network
+    #bayesian_network = greedy_bayes(data['encoded_dataset'], config.k, config.epsilon)
+    #dd['bayesian_network'] = bayesian_network
     #dd['conditional_probabilities'] = construct_noisy_conditional_distributions(
     #    bayesian_network, data['encoded_dataset'], config.epsilon)
     dd = dask.optimize(dd)[0]

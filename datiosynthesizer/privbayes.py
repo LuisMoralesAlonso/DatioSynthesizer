@@ -94,7 +94,7 @@ def calculate_k(num_attributes, num_tuples, target_usefulness=4, epsilon=0.1):
         return ans
 
 
-def greedy_bayes(dataset, k=0, epsilon=0):
+def greedy_bayes(dataset, describer: dict, k=0, epsilon=0):
     """Construct a Bayesian Network (BN) using greedy algorithm.
 
     Parameters
@@ -107,14 +107,16 @@ def greedy_bayes(dataset, k=0, epsilon=0):
             Parameter of differential privacy.
     """
 
-    num_tuples, num_attributes = dataset.shape
+    num_tuples = describer['num_tuples']
+    num_attributes = describer['num_attrs_in_BN']
+
     if not k:
         k = calculate_k(num_attributes, num_tuples)
 
-    attributes = set(dataset.keys())
+    attributes = set(describer['attrs_in_BN'])
     N = []
     V = set()
-    V.add(random.choice(attributes))
+    V.add(random.choice(describer['attrs_in_BN']))
 
     print('================== Constructing Bayesian Network ==================')
     for i in range(1, len(attributes)):
@@ -131,8 +133,9 @@ def greedy_bayes(dataset, k=0, epsilon=0):
                 mi = mutual_information(dataset[child], dataset[parents])
                 mutual_info_list.append(mi)
 
+        mutual_info_list = dask.compute(mutual_info_list)[0]
         if epsilon:
-            sampling_distribution = exponential_mechanism(dataset, mutual_info_list, epsilon)
+            sampling_distribution = exponential_mechanism(num_tuples, num_attributes, mutual_info_list, epsilon)
             idx = np.random.choice(list(range(len(mutual_info_list))), p=sampling_distribution)
         else:
             idx = mutual_info_list.index(max(mutual_info_list))
@@ -144,10 +147,9 @@ def greedy_bayes(dataset, k=0, epsilon=0):
 
     return N
 
-
-def exponential_mechanism(dataset, mutual_info_list, epsilon=0.1):
+def exponential_mechanism(n_tuples, n_attributes, mutual_info_list, epsilon=0.1):
     """Applied in Exponential Mechanism to sample outcomes."""
-    num_tuples, num_attributes = dataset.shape
+    num_tuples, num_attributes = n_tuples, n_attributes
     mi_array = np.array(mutual_info_list)
     mi_array = mi_array / (2 * delta(num_attributes, num_tuples, epsilon))
     mi_array = np.exp(mi_array)
@@ -317,10 +319,17 @@ def get_contingency_nm(contingency_sum_delayed, nz_val_delayed):
     contingency_nm = nz_val_delayed / contingency_sum_delayed
     return contingency_nm
 
+
 def mutual_information(true: df.DataFrame, pred: df.DataFrame):
-    # Mutual information of distributions in format of pd.Series or pd.DataFrame.
-    str_trues = true.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
-    str_preds = pred.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
+    # Mutual information of distributions in format of dfSeries or df.DataFrame.
+    if 'DataFrame' in str(type(true)):
+        str_trues = true.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
+    else:
+        str_trues = true.astype(str).apply(lambda x: ' '.join(x), meta=('phrase', 'object'))
+    if 'DataFrame' in str(type(pred)):
+        str_preds = pred.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
+    else:
+        str_preds = pred.astype(str).apply(lambda x: ' '.join(x), axis=1, meta=('phrase', 'object'))
     true_classes = str_trues.unique()
     pred_classes = str_preds.unique()
     chunked_mi_list = list(map(lambda x: partition_mutual_info_pre_score(x[0], x[1]), list(zip(str_trues.to_delayed(),
@@ -335,4 +344,4 @@ def mutual_information(true: df.DataFrame, pred: df.DataFrame):
     outer = pi.take(nzx).astype(np.int64) * pj.take(nzy).astype(np.int64)
     log_outer = get_log_outer(outer, pi, pj)
     mi = get_mi(contingency_nm, log_contingency_nm, contingency_sum, log_outer)
-    return mi
+    return mi.sum()

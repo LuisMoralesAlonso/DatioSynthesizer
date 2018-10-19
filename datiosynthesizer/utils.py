@@ -3,32 +3,17 @@ import random
 import math
 import bisect
 from string import ascii_lowercase
+import dask
 import dask.dataframe as df
 import numpy as np
-#import pandas as pd
+import pandas as pd
+import scipy as sp
 from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
 
 
 def set_random_seed(seed: object = 0) -> object:
     random.seed(seed)
     np.random.seed(seed)
-
-
-def mutual_information(labels_true, labels_pred):
-    """Mutual information of distributions in format of pd.Series or pd.DataFrame.
-
-    Parameters
-    ----------
-        labels_true : Series or DataFrame
-        labels_pred : Series or DataFrame
-    """
-    if isinstance(labels_true, df.DataFrame):
-        labels_true = labels_true.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
-    if isinstance(labels_pred, df.DataFrame):
-        labels_pred = labels_pred.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
-
-    assert isinstance(labels_pred, df.Series)
-    return mutual_info_score(labels_true.astype(str), labels_pred.astype(str))
 
 
 def pairwise_attributes_mutual_information(dataset):

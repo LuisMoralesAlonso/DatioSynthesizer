@@ -2,12 +2,18 @@ import random
 import warnings
 from itertools import combinations, product
 from math import log, ceil
-
+import dask
+import dask.dataframe as df
+from scipy import sparse as sp
+from math import log
+from collections import Counter
+import functools
+import sklearn.metrics as metrics
 import numpy as np
 import pandas as pd
 from scipy.optimize import fsolve
 
-from datiosynthesizer.utils import mutual_information, normalize_given_distribution
+from datiosynthesizer.utils import normalize_given_distribution
 
 
 def sensitivity(num_tuples):
@@ -214,3 +220,119 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
                 conditional_distributions[child][str(list(parents_instance))] = dist
 
     return conditional_distributions
+
+#Both contingency matrix and MI for each partition
+@dask.delayed
+def partition_mutual_info_pre_score(true: pd.Series, pred: pd.Series):
+    datos = {}
+    true_classes, true_idx = np.unique(true, return_inverse=True)
+    datos['true_classes'] = true_classes
+    datos['true_idx'] = true_idx
+    pred_classes, pred_idx = np.unique(pred, return_inverse=True)
+    datos['pred_classes'] = pred_classes
+    datos['pred_idx'] = pred_idx
+    n_classes = true_classes.shape[0]
+    n_preds = pred_classes.shape[0]
+    datos['n_classes'] = n_classes
+    datos['n_preds'] = n_preds
+    contingency = sp.coo_matrix((np.ones(true_idx.shape[0]),
+                                 (true_idx, pred_idx)),
+                                shape=(n_classes, n_preds),
+                                dtype=np.int)
+    nzx, nzy, nz_val = sp.find(contingency)
+    datos['nzx'], datos['nzy'], datos['nz_val'] = nzx, nzy, nz_val
+    contingency_sum = contingency.sum()
+    datos['contingency_sum'] = contingency_sum
+    pi = np.ravel(contingency.sum(axis=1))
+    datos['pi'] = pi
+    pj = np.ravel(contingency.sum(axis=0))
+    datos['pj'] = pj
+    return datos
+
+
+@dask.delayed(nout=2)
+def gen_pi_pj(chunks_mi_list: list, true_classes: list, pred_classes: list):
+    #pi_dask = [0 for i in range(true_classes_len)]
+    pi_dask = np.zeros(len(true_classes))
+    pj_dask = np.zeros(len(pred_classes))
+    for mi_chunk in chunks_mi_list:
+        for index, clase in enumerate(true_classes):
+            try:
+                index_true_clase = mi_chunk['true_classes'].tolist().index(clase)
+                pi_dask[index] = pi_dask[index] + mi_chunk['pi'][mi_chunk['true_classes'].tolist().index(clase)]
+            except (IndexError, ValueError):
+                None
+        for index, clase in enumerate(pred_classes):
+            try:
+                index_pred_clase = mi_chunk['pred_classes'].tolist().index(clase)
+                pj_dask[index] = pj_dask[index] + mi_chunk['pj'][mi_chunk['pred_classes'].tolist().index(clase)]
+            except (IndexError, ValueError):
+                None
+    return (pi_dask, pj_dask)
+
+
+@dask.delayed(nout=3)
+def gen_nzx_nzy_nzval_dask(chunks_mi_list: list, true_classes, pred_classes):
+    nzx_dask, nzy_dask, nz_val_dask = np.array([], dtype=np.int64),np.array([], dtype=np.int64),np.array([], dtype=np.int64)
+    cross_clusters_list = []
+    for mi_chunk in chunks_mi_list:
+        true_nzx_np = np.array(list(map(lambda x: mi_chunk['true_classes'][x], mi_chunk['nzx'])))
+        true_nzy_np = np.array(list(map(lambda x: mi_chunk['pred_classes'][x], mi_chunk['nzy'])))
+        true_nz_val = mi_chunk['nz_val']
+        cross_clusters_list.append(Counter(dict(list(zip(zip(true_nzx_np,true_nzy_np),true_nz_val)))))
+    cross_clusters = dict(functools.reduce(lambda a,b : a+b,cross_clusters_list))
+    for key in cross_clusters.keys():
+        nzx_dask = np.append(nzx_dask, true_classes.tolist().index(key[0]))
+        nzy_dask = np.append(nzy_dask, pred_classes.tolist().index(key[1]))
+        nz_val_dask = np.append(nz_val_dask, cross_clusters[key])
+    return (nzx_dask, nzy_dask, nz_val_dask)
+
+
+@dask.delayed
+def get_log_outer(outer_delayed, pi_delayed, pj_delayed):
+    print(outer_delayed)
+    print(pi_delayed)
+    print(pj_delayed)
+    return -np.log(outer_delayed) + np.log(sum(pi_delayed)) + np.log(sum(pj_delayed))
+
+@dask.delayed
+def get_mi(contingency_nm_d, log_contingency_nm_d, contingency_sum_d, log_outer_d):
+    return (contingency_nm_d * (log_contingency_nm_d - log(contingency_sum_d)) +
+          contingency_nm_d * log_outer_d)
+
+@dask.delayed
+def get_contingency_sum(chunks_mi_list: list):
+    suma = 0
+    for mi_chunk in chunks_mi_list:
+        suma = suma + mi_chunk['contingency_sum']
+    print(suma)
+    return suma
+
+@dask.delayed
+def get_log_contingency_nm(nz_val_delayed):
+    return np.log(nz_val_delayed)
+
+@dask.delayed
+def get_contingency_nm(contingency_sum_delayed, nz_val_delayed):
+    contingency_nm = nz_val_delayed / contingency_sum_delayed
+    return contingency_nm
+
+def mutual_information(true: df.DataFrame, pred: df.DataFrame):
+    # Mutual information of distributions in format of pd.Series or pd.DataFrame.
+    str_trues = true.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
+    str_preds = pred.astype(str).apply(lambda x: ' '.join(x.tolist()), axis=1, meta=('phrase', 'object'))
+    true_classes = str_trues.unique()
+    pred_classes = str_preds.unique()
+    chunked_mi_list = list(map(lambda x: partition_mutual_info_pre_score(x[0], x[1]), list(zip(str_trues.to_delayed(),
+                                                                                               str_preds.to_delayed()))))
+    pi, pj = gen_pi_pj(chunked_mi_list, true_classes, pred_classes)
+    nzx, nzy, nz_val = gen_nzx_nzy_nzval_dask(chunked_mi_list, true_classes, pred_classes)
+    contingency_sum = get_contingency_sum(chunked_mi_list)
+    log_contingency_nm = get_log_contingency_nm(nz_val)
+    contingency_nm = get_contingency_nm(contingency_sum, nz_val)
+
+    # Don't need to calculate the full outer product, just for non-zeroes
+    outer = pi.take(nzx).astype(np.int64) * pj.take(nzy).astype(np.int64)
+    log_outer = get_log_outer(outer, pi, pj)
+    mi = get_mi(contingency_nm, log_contingency_nm, contingency_sum, log_outer)
+    return mi

@@ -59,16 +59,15 @@ def random_mode(dataset_file: object) -> dict:
 
 def correlated_mode(dataset_file: object) -> dict:
     dd, data = independent_mode(dataset_file, alone=False)
-    data['encoded_dataset'] = encode_dataset_into_binning_indices(dd, data['data'], dd['meta']['attrs_in_BN'], describer['categories'])
-    if data['encoded_dataset'].shape[1] < 2:
-        raise Exception("Constructing Bayesian Network needs more attributes.")
+    data['encoded_dataset'] = df.from_delayed(encode_dataset_into_binning_indices(dd, data['data'], dd['meta']['attrs_in_BN'],
+                                                                                  describer['categories']))
+    #if data['encoded_dataset'].shape[1] < 2:
+    #    raise Exception("Constructing Bayesian Network needs more attributes.")
 
-    bayesian_network = greedy_bayes(data['encoded_dataset'], config.k, config.epsilon, dd)
-    #dd['bayesian_network'] = bayesian_network
+    bayesian_network = greedy_bayes(data['encoded_dataset'], dd, config.k, config.epsilon)
+    dd['bayesian_network'] = bayesian_network
     #dd['conditional_probabilities'] = construct_noisy_conditional_distributions(
     #    bayesian_network, data['encoded_dataset'], config.epsilon)
-    dd = dask.optimize(dd)[0]
-    dd = dask.compute(dd)[0]
     return dd, data
 
 
@@ -93,7 +92,7 @@ def init_meta(datos: dict, describer: dict):
                                          and (describer['datatypes'][attr] is config.DataType.STRING)]
     attributes_in_bn = list(set(columns) - set(describer['key_candidates']) - set(non_categorical_string_attributes))
     num_attributes_in_bn = len(attributes_in_bn)
-    return {"num_tuples": datos['data'].shape[0],
+    return {"num_tuples": datos['data'].shape[0].compute(),
                                    "num_attrs": datos['data'].shape[1],
                                    "num_attrs_in_BN": num_attributes_in_bn,
                                    "attrs": columns,
@@ -101,10 +100,13 @@ def init_meta(datos: dict, describer: dict):
                                    "non_cat_string": non_categorical_string_attributes,
                                    "attrs_in_BN": attributes_in_bn}
 
+
 def encode_dataset_into_binning_indices(dd: dict, data: df, bn_attrs: [], cat_attrs: []):
     """Before constructing Bayesian network, encode input dataset into binning indices."""
-    return data.map_partitions(attributes.encode_chunk_into_binning_indices, bn_attrs, cat_attrs, dd['distribution']['bins'], meta=data)
-
+    data_enconded = data.to_delayed()
+    data_enconded = [dask.delayed(attributes.encode_chunk_into_binning_indices)
+                     (chunk, bn_attrs, cat_attrs, dd['distribution']['bins']) for chunk in data_enconded]
+    return data_enconded
 
 def save_dataset_description_to_file(description: dict, file_name):
     with open(file_name, 'w') as outfile:

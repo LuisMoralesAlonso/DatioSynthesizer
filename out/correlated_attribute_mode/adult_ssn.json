@@ -1,0 +1,29 @@
+{
+    "meta": {
+        "num_tuples": 32561,
+        "num_attrs": 7,
+        "num_attrs_in_BN": 6,
+        "attrs": [
+            "ssn",
+            "age",
+            "education",
+            "marital-status",
+            "relationship",
+            "sex",
+            "income"
+        ],
+        "key_candidates": [
+            "ssn"
+        ],
+        "non_cat_string": [],
+        "attrs_in_BN": [
+            "marital-status",
+            "income",
+            "age",
+            "relationship",
+            "sex",
+            "education"
+        ]
+    },
+    "mins": {
+        "ssn": 

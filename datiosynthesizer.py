@@ -9,4 +9,4 @@ if __name__ == "__main__":
 
     desc, _ = describer.correlated_mode('data/adult_ssn.csv')
     print(desc)
-    describer.save_dataset_description_to_file(desc, 'out/independent_attribute_mode/adult_ssn.json')
+    describer.save_dataset_description_to_file(desc, 'out/correlated_attribute_mode/adult_ssn.json')

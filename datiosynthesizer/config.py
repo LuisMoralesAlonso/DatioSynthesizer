@@ -19,7 +19,7 @@ histogram_size=20
 epsilon = 0.1
 
 #Number of parents in Bayesian Network
-k=0
+k=2
 
 #Aditional Null values
 null_values='<NULL>'

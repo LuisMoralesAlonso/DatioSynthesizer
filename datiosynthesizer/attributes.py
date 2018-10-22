@@ -12,9 +12,9 @@ def get_mins(datos: dict, dd: dict, describer: dict):
     # Hay que aplicar lógica a los String
     for attr in dd['meta']['attrs']:
         if describer['datatypes'][attr] is config.DataType.STRING:
-            mins[attr] = dask.delayed(float)(datos['dropna'][attr].map(len, meta=('len', int)).min())
+            mins[attr] = datos['dropna'][attr].map(len, meta=('len', int)).min()
         else:
-            mins[attr] = dask.delayed(float)(datos['data'][attr].min())
+            mins[attr] = datos['data'][attr].min()
     return mins
 
 
@@ -24,23 +24,22 @@ def get_maxes(datos: dict, dd: dict, describer: dict):
     # Hay que aplicar lógica a los String
     for attr in dd['meta']['attrs']:
         if describer['datatypes'][attr] is config.DataType.STRING:
-            maxes[attr] = dask.delayed(float)(datos['dropna'][attr].map(len, meta=('len', int)).max())
+            maxes[attr] = datos['dropna'][attr].map(len, meta=('len', int)).max()
         else:
-            maxes[attr] = dask.delayed(float)(datos['data'][attr].max())
+            maxes[attr] = datos['data'][attr].max()
     return maxes
 
 
 def get_missing_rates(datos: dict, dd: dict, describer: dict):
     rates = {}
     for attr in dd['meta']['attrs']:
-        rates[attr] = dask.delayed(float)((datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size)
+        rates[attr] = (datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size
     return rates
 
 
 @dask.delayed
 def get_cat_probs(dist):
-    dist_copy = copy.copy(dist)
-    dist_copy.sort_index(inplace=True)
+    dist_copy = dist.sort_index()
     probs = utils.normalize_given_distribution(dist_copy)
     return probs
 
@@ -126,13 +125,13 @@ def inject_laplace_noise_column(col_size, dist: dict, column, epsilon=0.1, valid
 
 def encode_chunk_into_binning_indices(part, bn_cols: [], cat_cols: [], bin_indices: dict):
     """ Encode values into binning indices for distribution modeling."""
-    part_copy = copy.copy(part)
+    part_copy = copy.copy(part[bn_cols])
     for col in part_copy.columns.tolist():
         if col in bn_cols:
             if col in cat_cols:
-                part_copy[col] = part[col].map(utils.bin_cat(bin_indices[col]))
+                part_copy[col] = part_copy[col].apply(utils.bin_cat,args=(bin_indices[col],))
             else:
-                part_copy[col] = part[col].map(utils.bin_noncat(bin_indices[col]))
+                part_copy[col] = part[col].apply(utils.bin_noncat,args=(bin_indices[col],))
         else:
             part_copy.drop(col, axis=1)
     return part_copy

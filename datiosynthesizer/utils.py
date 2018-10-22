@@ -28,9 +28,9 @@ def pairwise_attributes_mutual_information(dataset):
 
 def normalize_given_distribution(frequencies):
     distribution = np.array(frequencies, dtype=float)
-    distribution = distribution.clip(0)  # replace negative values with 0
+    distribution = frequencies.clip(0)  # replace negative values with 0
     if distribution.sum() == 0:
-        distribution.fill(1 / distribution.size)
+        distribution.map(lambda x: 1 / distribution.size)
     else:
         distribution = distribution / distribution.sum()
     return distribution.tolist()

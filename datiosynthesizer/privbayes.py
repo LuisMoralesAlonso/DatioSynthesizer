@@ -73,7 +73,7 @@ def usefulness_minus_target(k, num_attributes, num_tuples, target_usefulness=5, 
         usefulness = num_tuples * epsilon / ((num_attributes - k) * (2 ** (k + 3)))  # PrivBayes Lemma 3
     return usefulness - target_usefulness
 
-
+@dask.delayed
 def calculate_k(num_attributes, num_tuples, target_usefulness=4, epsilon=0.1):
     """Calculate the maximum degree when constructing Bayesian networks. See PrivBayes Lemma 3."""
     default_k = 3
@@ -107,45 +107,50 @@ def greedy_bayes(dataset, describer: dict, k=0, epsilon=0):
             Parameter of differential privacy.
     """
 
-    num_tuples = describer['num_tuples']
-    num_attributes = describer['num_attrs_in_BN']
+    num_tuples = describer['meta']['num_tuples']
+    num_attributes = describer['meta']['num_attrs_in_BN']
 
     if not k:
         k = calculate_k(num_attributes, num_tuples)
 
-    attributes = set(describer['attrs_in_BN'])
+    attributes = set(describer['meta']['attrs_in_BN'])
     N = []
     V = set()
-    V.add(random.choice(describer['attrs_in_BN']))
+    V.add(random.choice(describer['meta']['attrs_in_BN']))
 
     print('================== Constructing Bayesian Network ==================')
     for i in range(1, len(attributes)):
-        print('Looking for next attribute-parents pair.')
-        rest_attributes = attributes - V
-        parents_pair_list = []
-        mutual_info_list = []
-        for child in rest_attributes:
-            print('    Considering attribute {}'.format(child))
-            for parents in combinations(V, min(k, len(V))):
-                parents = list(parents)
-                parents_pair_list.append((child, parents))
-                # TODO consider to change the computation of MI by combined integers instead of strings.
-                mi = mutual_information(dataset[child], dataset[parents])
-                mutual_info_list.append(mi)
-
-        mutual_info_list = dask.compute(mutual_info_list)[0]
-        if epsilon:
-            sampling_distribution = exponential_mechanism(num_tuples, num_attributes, mutual_info_list, epsilon)
-            idx = np.random.choice(list(range(len(mutual_info_list))), p=sampling_distribution)
-        else:
-            idx = mutual_info_list.index(max(mutual_info_list))
-
-        N.append(parents_pair_list[idx])
-        V.add(parents_pair_list[idx][0])
+        parents_pair = get_next_parents_group(attributes, V, dataset, epsilon, num_tuples, num_attributes, k)
+        N.append(parents_pair)
+        V.add(parents_pair[0])
 
     print('========================= BN constructed =========================')
 
     return N
+
+
+def get_next_parents_group(attrs, parent_groups, data, epsilon, tuples, num_attrs, k):
+    print('Looking for next attribute-parents pair.')
+    rest_attributes = attrs - parent_groups
+    parents_pair_list = []
+    mutual_info_list = []
+    # TODO: This can be parallelized too. MUST implement it.
+    for child in rest_attributes:
+        print('    Considering attribute {}'.format(child))
+        for parents in combinations(parent_groups, min(k, len(parent_groups))):
+            parents = list(parents)
+            parents_pair_list.append((child, parents))
+            # TODO consider to change the computation of MI by combined integers instead of strings.
+            mi = mutual_information(data[child], data[parents])
+            mutual_info_list.append(mi)
+    mutual_info_list = dask.compute(mutual_info_list)[0]
+    # mutual_info_list = dask.compute(mutual_info_list)[0]
+    if epsilon:
+        sampling_distribution = exponential_mechanism(tuples, num_attrs, mutual_info_list, epsilon)
+        idx = np.random.choice(list(range(len(mutual_info_list))), p=sampling_distribution)
+    else:
+        idx = mutual_info_list.index(max(mutual_info_list))
+    return parents_pair_list[idx]
 
 def exponential_mechanism(n_tuples, n_attributes, mutual_info_list, epsilon=0.1):
     """Applied in Exponential Mechanism to sample outcomes."""
@@ -292,9 +297,6 @@ def gen_nzx_nzy_nzval_dask(chunks_mi_list: list, true_classes, pred_classes):
 
 @dask.delayed
 def get_log_outer(outer_delayed, pi_delayed, pj_delayed):
-    print(outer_delayed)
-    print(pi_delayed)
-    print(pj_delayed)
     return -np.log(outer_delayed) + np.log(sum(pi_delayed)) + np.log(sum(pj_delayed))
 
 @dask.delayed
@@ -307,7 +309,6 @@ def get_contingency_sum(chunks_mi_list: list):
     suma = 0
     for mi_chunk in chunks_mi_list:
         suma = suma + mi_chunk['contingency_sum']
-    print(suma)
     return suma
 
 @dask.delayed

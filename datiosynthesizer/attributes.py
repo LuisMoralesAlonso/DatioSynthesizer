@@ -15,7 +15,7 @@ def get_mins(datos: dict, dd: dict, describer: dict):
             mins[attr] = datos['dropna'][attr].map(len, meta=('len', int)).min()
         else:
             mins[attr] = datos['data'][attr].min()
-    return mins
+    return as_float(mins)
 
 
 def get_maxes(datos: dict, dd: dict, describer: dict):
@@ -27,14 +27,14 @@ def get_maxes(datos: dict, dd: dict, describer: dict):
             maxes[attr] = datos['dropna'][attr].map(len, meta=('len', int)).max()
         else:
             maxes[attr] = datos['data'][attr].max()
-    return maxes
+    return as_float(maxes)
 
 
 def get_missing_rates(datos: dict, dd: dict, describer: dict):
     rates = {}
     for attr in dd['meta']['attrs']:
         rates[attr] = (datos['data'][attr].size - datos['dropna'][attr].size) / datos['data'][attr].size
-    return rates
+    return as_float(rates)
 
 
 @dask.delayed
@@ -135,3 +135,9 @@ def encode_chunk_into_binning_indices(part, bn_cols: [], cat_cols: [], bin_indic
         else:
             part_copy.drop(col, axis=1)
     return part_copy
+
+
+@dask.delayed
+def as_float(kv:dict):
+    float_dict = {k: float(v) for k, v in kv.items()}
+    return float_dict

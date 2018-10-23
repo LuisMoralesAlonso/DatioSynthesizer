@@ -171,7 +171,7 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     data = encoded_dataset.copy().loc[:, attributes]
     data['count'] = 1
     stats = data.groupby(attributes).sum()
-
+    stats = stats.compute()
     full_space = pd.DataFrame(columns=attributes, data=list(product(*stats.index.levels)))
     stats.reset_index(inplace=True)
     stats = pd.merge(full_space, stats, how='left')
@@ -180,6 +180,7 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     if epsilon:
         k = len(attributes) - 1
         num_tuples, num_attributes = encoded_dataset.shape
+        num_tuples = num_tuples.compute()
         noise_para = laplacian_noise_parameter(k, num_attributes, num_tuples, epsilon)
         laplacian_noises = np.random.laplace(0, scale=noise_para, size=stats.index.size)
         stats['count'] += laplacian_noises
@@ -188,10 +189,9 @@ def get_noisy_distribution_of_attributes(attributes, encoded_dataset, epsilon=0.
     return stats
 
 
-def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset, epsilon=0.1):
+def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset, k=2, epsilon=0.1):
     """See more in Algorithm 1 in PrivBayes."""
 
-    k = len(bayesian_network[-1][1])
     conditional_distributions = {}
 
     # first k+1 attributes
@@ -205,7 +205,7 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
 
     # generate noisy distribution of root attribute.
     root_stats = noisy_dist_of_kplus1_attributes.loc[:, [root, 'count']].groupby(root).sum()['count']
-    conditional_distributions[root] = normalize_given_distribution(root_stats).tolist()
+    conditional_distributions[root] = normalize_given_distribution(root_stats)
 
     for idx, (child, parents) in enumerate(bayesian_network):
         conditional_distributions[child] = {}
@@ -219,11 +219,11 @@ def construct_noisy_conditional_distributions(bayesian_network, encoded_dataset,
 
         if len(parents) == 1:
             for parent_instance in stats.index.levels[0]:
-                dist = normalize_given_distribution(stats.loc[parent_instance]['count']).tolist()
+                dist = normalize_given_distribution(stats.loc[parent_instance]['count'])
                 conditional_distributions[child][str([parent_instance])] = dist
         else:
             for parents_instance in product(*stats.index.levels[:-1]):
-                dist = normalize_given_distribution(stats.loc[parents_instance]['count']).tolist()
+                dist = normalize_given_distribution(stats.loc[parents_instance]['count'])
                 conditional_distributions[child][str(list(parents_instance))] = dist
 
     return conditional_distributions

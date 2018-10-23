@@ -58,7 +58,7 @@ def random_mode(dataset_file: object) -> dict:
 
 
 def correlated_mode(dataset_file: object) -> dict:
-    dd, data = independent_mode(dataset_file, alone=False)
+    dd, data = independent_mode(dataset_file, alone=True)
     data['encoded_dataset'] = df.from_delayed(encode_dataset_into_binning_indices(dd, data['data'], dd['meta']['attrs_in_BN'],
                                                                                   describer['categories']))
     #if data['encoded_dataset'].shape[1] < 2:
@@ -66,8 +66,11 @@ def correlated_mode(dataset_file: object) -> dict:
 
     bayesian_network = greedy_bayes(data['encoded_dataset'], dd, config.k, config.epsilon)
     dd['bayesian_network'] = bayesian_network
-    #dd['conditional_probabilities'] = construct_noisy_conditional_distributions(
-    #    bayesian_network, data['encoded_dataset'], config.epsilon)
+    #bayesian_network=[('marital-status', ['relationship']), ('sex', ['relationship', 'marital-status']),
+    #                        ('education', ['relationship', 'sex']), ('age', ['education', 'marital-status']),
+    #                        ('income', ['education', 'sex'])]
+    dd['conditional_probabilities'] = construct_noisy_conditional_distributions(
+        bayesian_network, data['encoded_dataset'], config.k, config.epsilon)
     return dd, data
 
 

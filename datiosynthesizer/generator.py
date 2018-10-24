@@ -8,3 +8,7 @@ import datiosynthesizer.attributes as attributes
 
 def init_random(seed: int = 0) -> None:
     utils.set_random_seed(seed)
+
+def init_generator(file_desc):
+    init_random(config.seed)
+    return None

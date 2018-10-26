@@ -1,5 +1,6 @@
 import dask
 import dask.dataframe as df
+import distributed
 import numpy as np
 import json
 import datiosynthesizer.config as config
@@ -17,7 +18,7 @@ def init_random(seed: int = 0) -> None:
 
 def init_describer(seed: int = 0, epsilon: float = 0.1, attribute_to_datatype: dict = {},
                      attribute_to_is_categorical: list = [], attribute_to_is_candidate_key: list = []) -> None:
-
+    #client = distributed.Client()
     describer['datatypes'] = {attr: config.DataType(data_type) for attr, data_type in
                                               attribute_to_datatype.items()}
     describer['categories'] = attribute_to_is_categorical

@@ -1,6 +1,5 @@
 import dask
 import distributed
-import dask.dataframe as df
 import pandas as pd
 import numpy as np
 import datiosynthesizer.config as config
@@ -23,10 +22,11 @@ def init_generator(file_desc, n_rows: int, chunk_size: int, output_file: str, or
     description['generation']['output_file'] = output_file
     description['generation']['ordered_by_key'] = ordered_by_key
     description['generation']['chunk_size'] = chunk_size
-    rest_rows = n_rows % chunk_size
     description['generation']['number_chunks'] = int(n_rows // chunk_size)
+    rest_rows = n_rows % chunk_size
     if rest_rows:
         description['generation']['last_chunk_size'] = rest_rows
+        description['generation']['number_chunks']+=1
     else:
         description['generation']['last_chunk_size'] = 0
     return description
@@ -50,6 +50,15 @@ def generate_independent(desc: dict):
     return delayed_chunks
 
 
+def generate_correlated(desc: dict):
+    delayed_chunks = []
+    global_conf = build_conf(desc)
+    for chunk_pos in range(desc['generation']['number_chunks']):
+        delayed_chunks.append(write_chunk('correlated', desc, global_conf, chunk_pos, desc['generation']['output_file']))
+    delayed_chunks = dask.compute(*delayed_chunks)
+    return delayed_chunks
+
+
 def build_conf(desc: dict):
     dataset_params = {}
     for column in desc['meta']['attrs']:
@@ -67,6 +76,7 @@ def build_params(name: str, describer: dict):
         params['categorical'] = True
     params['total_chunks'] = describer['generation']['number_chunks']
     params['chunk_size'] = describer['generation']['chunk_size']
+    params['last_chunk_size'] = describer['generation']['last_chunk_size']
     params['min'] = describer['mins'][name]
     params['max'] = describer['maxes'][name]
     params['string_length'] = np.random.randint(params['min'], params['max'])
@@ -74,15 +84,18 @@ def build_params(name: str, describer: dict):
     params['distribution_probs'] = describer['distribution']['probs'][name]
     return params
 
-@dask.delayed
+#@dask.delayed
 def write_chunk(gen_type: str, description: dict, conf: dict, pos: int, output_file: str):
     start_time = time.time()
     now = datetime.datetime.now()
     print('Init ' + str(pos) + ': ' + now.strftime("%Y-%m-%d %H:%M:%S:%f"))
     if gen_type == 'random':
-        chunk = generate_rand_chunk(description, conf, pos)
+        chunk = generate_rand_chunk(conf, pos)
     elif gen_type == 'independent':
-        chunk = generate_ind_chunk(description, conf, pos)
+        chunk = generate_ind_chunk(conf, pos)
+    elif gen_type == 'correlated':
+        chunk = generate_correl_chunk(description, conf, pos)
+    else: None
     elapsed_time = time.time() - start_time
     print('chunk ' + str(pos) + ': ' + str(elapsed_time))
     output = output_file + str(pos) + str('.parquet')
@@ -93,7 +106,10 @@ def write_chunk(gen_type: str, description: dict, conf: dict, pos: int, output_f
     return output
 
 
-def generate_rand_chunk(description: dict, conf: dict, pos: int):
+def generate_rand_chunk(conf: dict, pos: int):
+    if (pos+1 == conf[list(conf.keys())[0]]['total_chunks']) and conf[list(conf.keys())[0]]['last_chunk_size']:
+        for column in conf.keys():
+            conf[column]['chunk_size'] = conf[column]['last_chunk_size']
     length = conf[list(conf.keys())[0]]['chunk_size']
     data_chunk = pd.DataFrame(index=range(pos * length, (pos + 1) * length))
     for key in conf.keys():
@@ -113,7 +129,10 @@ def generate_rand_chunk(description: dict, conf: dict, pos: int):
     return data_chunk
 
 
-def generate_ind_chunk(description: dict, conf: dict, pos: int):
+def generate_ind_chunk(conf: dict, pos: int):
+    if (pos + 1 == conf[list(conf.keys())[0]]['total_chunks']) and conf[list(conf.keys())[0]]['last_chunk_size']:
+        for column in conf.keys():
+            conf[column]['chunk_size'] = conf[column]['last_chunk_size']
     length = conf[list(conf.keys())[0]]['chunk_size']
     data_chunk = pd.DataFrame(index=range(pos * length, (pos + 1) * length))
     for key in conf.keys():
@@ -129,7 +148,43 @@ def generate_ind_chunk(description: dict, conf: dict, pos: int):
             elif params['type'] == 'String':
                 data_chunk[key] = generate_ind_string_chunk(params, data)
             elif params['type'] == 'Integer' or 'Datetime':
-                data_chunk[key] = generate_ind_int_datetime_chunk(params,binning_indices)
+                data_chunk[key] = generate_ind_int_datetime_chunk(data)
+            else:
+                None
+    return data_chunk
+
+
+def generate_correl_chunk(desc: dict, conf: dict, pos: int):
+    if (pos + 1 == conf[list(conf.keys())[0]]['total_chunks']) and conf[list(conf.keys())[0]]['last_chunk_size']:
+        for column in conf.keys():
+            conf[column]['chunk_size'] = conf[column]['last_chunk_size']
+    length = conf[list(conf.keys())[0]]['chunk_size']
+    data_chunk = pd.DataFrame(index=range(pos * length, (pos + 1) * length))
+    data_encoded = generate_encoded_chunk(length, desc)
+    for key in conf.keys():
+        params = conf[key]
+        params['chunk_pos'] = pos
+        if key in data_encoded.keys():
+            data = data_encoded[key].apply(lambda x: uniform_sampling_within_a_bin(params, x))
+            if params['type'] == 'SocialSecurityNumber' or 'Float':
+                data_chunk[key] = data
+            elif params['type'] == 'String':
+                data_chunk[key] = generate_ind_string_chunk(params, data)
+            elif params['type'] == 'Integer' or 'Datetime':
+                data_chunk[key] = generate_ind_int_datetime_chunk(data)
+            else:
+                None
+        elif params['key']:
+            data_chunk[key] = generate_key_chunk(params)
+        else:
+            binning_indices = pd.Series(choice(len(params['distribution_probs']), size=length, p=params['distribution_probs']))
+            data = binning_indices.apply(lambda x: uniform_sampling_within_a_bin(params, x))
+            if params['type'] == 'SocialSecurityNumber' or 'Float':
+                data_chunk[key] = data
+            elif params['type'] == 'String':
+                data_chunk[key] = generate_ind_string_chunk(params, data)
+            elif params['type'] == 'Integer' or 'Datetime':
+                data_chunk[key] = generate_ind_int_datetime_chunk(data)
             else:
                 None
     return data_chunk
@@ -197,3 +252,34 @@ def uniform_sampling_within_a_bin(params, binning_index):
         bins = params['distribution_bins'].copy()
         bins.append(2 * bins[-1] - bins[-2])
         return uniform(bins[binning_index], bins[binning_index + 1])
+
+
+def generate_encoded_chunk(n, description):
+    bn = description['bayesian_network']
+    bn_root_attr = bn[0][1][0]
+    root_attr_dist = description['conditional_probabilities'][bn_root_attr]
+    encoded_df = pd.DataFrame(columns=utils.get_sampling_order(bn))
+    encoded_df[bn_root_attr] = np.random.choice(len(root_attr_dist), size=n, p=root_attr_dist)
+
+    for child, parents in bn:
+        child_conditional_distributions = description['conditional_probabilities'][child]
+        for parents_instance in child_conditional_distributions.keys():
+            dist = child_conditional_distributions[parents_instance]
+            parents_instance = list(eval(parents_instance))
+
+            filter_condition = ''
+            for parent, value in zip(parents, parents_instance):
+                filter_condition += '({0}["{1}"]=={2}) & '.format('encoded_df', parent, value)
+
+            filter_condition = eval(filter_condition[:-3])
+
+            size = encoded_df[filter_condition].shape[0]
+            if size:
+                encoded_df.loc[filter_condition, child] = np.random.choice(len(dist), size=size, p=dist)
+
+        unconditioned_distribution = description['attribute_description'][child]['distribution_probabilities']
+        encoded_df.loc[encoded_df[child].isnull(), child] = np.random.choice(len(unconditioned_distribution),
+                                                                             size=encoded_df[child].isnull().sum(),
+                                                                             p=unconditioned_distribution)
+    encoded_df[encoded_df.columns] = encoded_df[encoded_df.columns].astype(int)
+    return encoded_df

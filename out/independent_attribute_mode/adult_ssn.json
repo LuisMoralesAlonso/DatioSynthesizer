@@ -23,6 +23,22 @@
             "age",
             "income",
             "education"
+        ],
+        "datatypes": {
+            "ssn": "SocialSecurityNumber",
+            "age": "Integer",
+            "education": "String",
+            "marital-status": "String",
+            "relationship": "String",
+            "sex": "String",
+            "income": "String"
+        },
+        "categories": [
+            "education",
+            "marital-status",
+            "relationship",
+            "sex",
+            "income"
         ]
     },
     "mins": {

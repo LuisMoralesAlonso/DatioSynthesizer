@@ -9,7 +9,10 @@ if __name__ == "__main__":
 
     #dd, data = describer.correlated_mode('data/adult_ssn.csv')
     #describer.save_dataset_description_to_file(dd,'out/correlated_attribute_mode/adult_ssn.json')
-
-    desc = generator.init_generator('out/correlated_attribute_mode/adult_ssn.json',100,10,'out/correlated_attribute_mode/adult_ssn_synthetic.parquet')
+    file_descriptor = 'out/independent_attribute_mode/adult_ssn.json'
+    total_rows = 100
+    total_chunks = 10
+    file_output = 'out/random_mode/adult_ssn_synthetic'
+    desc = generator.init_generator(file_descriptor,total_rows,total_chunks,file_output)
     delayed = generator.generate_random(desc)
     print(delayed)

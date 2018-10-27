@@ -85,3 +85,12 @@ def display_bayesian_network(bn):
 
 def generate_random_string(length):
     return ''.join(np.random.choice(list(ascii_lowercase), size=length))
+
+
+def get_sampling_order(bn):
+    order = [bn[0][1][0]]
+    for child, _ in bn:
+        order.append(child)
+    return order
+
+

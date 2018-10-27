@@ -8,7 +8,6 @@ from scipy import sparse as sp
 from math import log
 from collections import Counter
 import functools
-import sklearn.metrics as metrics
 import numpy as np
 import pandas as pd
 from scipy.optimize import fsolve

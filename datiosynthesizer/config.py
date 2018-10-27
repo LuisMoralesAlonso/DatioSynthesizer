@@ -2,7 +2,7 @@ from enum import Enum
 
 #Default seed
 seed = 0
-class DataType(Enum):
+class DataType(str, Enum):
     INTEGER = 'Integer'
     FLOAT = 'Float'
     STRING = 'String'

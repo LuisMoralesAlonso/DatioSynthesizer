@@ -3,19 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d64aa58b-a768-47e9-8181-f015b0e46730" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/datiosynthesizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datiosynthesizer/generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer/generator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datiosynthesizer/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/datiosynthesizer/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet0.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet1.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet2.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet3.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet4.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet5.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet6.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet7.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet8.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/correlated_attribute_mode/adult_ssn_synthetic.parquet9.parquet" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/independent_attribute_mode/adult_ssn.json" beforeDir="false" afterPath="$PROJECT_DIR$/out/independent_attribute_mode/adult_ssn.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/datiosynthesizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+            <state relative-caret-position="330">
+              <caret line="15" column="21" selection-start-line="15" selection-start-column="21" selection-end-line="15" selection-end-column="21" />
               <folding>
                 <element signature="e#0#49#0" expanded="true" />
               </folding>
@@ -88,7 +75,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/datiosynthesizer/generator.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="198">
@@ -158,9 +145,9 @@
         <option value="$USER_HOME$/DataSynthesizer/DataSynthesizer/datatypes/AbstractAttribute.py" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_1.py" />
         <option value="$PROJECT_DIR$/out/independent_attribute_mode/adult_ssn.json" />
-        <option value="$PROJECT_DIR$/datiosynthesizer.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/utils.py" />
         <option value="$PROJECT_DIR$/datiosynthesizer/generator.py" />
+        <option value="$PROJECT_DIR$/datiosynthesizer.py" />
       </list>
     </option>
   </component>
@@ -704,16 +691,6 @@
     <entry file="file://$PROJECT_DIR$/out/samples/random_mode/description.txt">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/datiosynthesizer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
-          <folding>
-            <element signature="e#0#49#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/datiosynthesizer/utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1848">
@@ -732,6 +709,16 @@
             <element signature="e#0#11#0" expanded="true" />
             <marker date="1540661111089" expanded="true" signature="2440:5165" ph="..." />
             <marker date="1540661111089" expanded="true" signature="8261:8700" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/datiosynthesizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="15" column="21" selection-start-line="15" selection-start-column="21" selection-end-line="15" selection-end-column="21" />
+          <folding>
+            <element signature="e#0#49#0" expanded="true" />
           </folding>
         </state>
       </provider>

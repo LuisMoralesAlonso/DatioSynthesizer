@@ -13,8 +13,9 @@ def init_random(seed: int = 0) -> None:
     utils.set_random_seed(seed)
 
 
-def init_generator(file_desc, n_rows: int, chunk_size: int, output_file: str, ordered_by_key: bool = False):
-    #client = distributed.Client()
+def init_generator(file_desc, n_rows: int, chunk_size: int, output_file: str, ordered_by_key: bool = False, cluster: str = None):
+    if cluster:
+        client = distributed.Client(cluster)
     init_random(config.seed)
     description = utils.read_json_file(file_desc)
     description['generation'] = {}

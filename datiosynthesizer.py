@@ -13,6 +13,7 @@ if __name__ == "__main__":
     total_rows = 100
     total_chunks = 10
     file_output = 'out/random_mode/adult_ssn_synthetic'
-    desc = generator.init_generator(file_descriptor,total_rows,total_chunks,file_output)
+    dask_cluster = None
+    desc = generator.init_generator(file_descriptor,total_rows,total_chunks,file_output, dask_cluster)
     delayed = generator.generate_random(desc)
     print(delayed)

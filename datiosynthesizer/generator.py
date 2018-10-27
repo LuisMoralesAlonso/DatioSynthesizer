@@ -6,6 +6,8 @@ import numpy as np
 import datiosynthesizer.config as config
 import datiosynthesizer.utils as utils
 import time, datetime
+from numpy.random import choice
+from random import uniform
 
 
 def init_random(seed: int = 0) -> None:
@@ -69,6 +71,7 @@ def build_params(name: str, describer: dict):
     params['max'] = describer['maxes'][name]
     params['string_length'] = np.random.randint(params['min'], params['max'])
     params['distribution_bins'] = describer['distribution']['bins'][name]
+    params['distribution_probs'] = describer['distribution']['probs'][name]
     return params
 
 @dask.delayed
@@ -118,15 +121,17 @@ def generate_ind_chunk(description: dict, conf: dict, pos: int):
         params['chunk_pos'] = pos
         if params['key']:
             data_chunk[key] = generate_key_chunk(params)
-        elif params['categorical']:
-            data_chunk[key] = generate_ind_cat_chunk(params)
-        elif params['type'] == 'String':
-            data_chunk[key] = generate_ind_string_chunk(params)
         else:
-            if params['type'] == 'Integer':
-                data_chunk[key] = generate_ind_int_chunk(params)
+            binning_indices = pd.Series(choice(len(params['distribution_probs']), size=length, p=params['distribution_probs']))
+            data = binning_indices.apply(lambda x: uniform_sampling_within_a_bin(params, x))
+            if params['type'] == 'SocialSecurityNumber' or 'Float':
+                data_chunk[key] = data
+            elif params['type'] == 'String':
+                data_chunk[key] = generate_ind_string_chunk(params, data)
+            elif params['type'] == 'Integer' or 'Datetime':
+                data_chunk[key] = generate_ind_int_datetime_chunk(params,binning_indices)
             else:
-                data_chunk[key] = generate_ind_float_datetime_chunk(params)
+                None
     return data_chunk
 
 
@@ -171,18 +176,24 @@ def generate_rand_string_chunk(params: dict):
     data = vectorized(np.arange(params['chunk_size']))
     return data
 
-def generate_ind_cat_chunk(params: dict):
-    data = np.random.choice(params['distribution_bins'], params['chunk_size'])
-    return data
 
-def generate_ind_int_chunk(params: dict):
-    return np.random.randint(params['min'], params['max'] + 1, params['chunk_size'])
+def generate_ind_int_datetime_chunk(column):
+    column[~column.isnull()] = column[~column.isnull()].astype(int)
+    return column
 
-def generate_ind_float_datetime_chunk(params: dict):
-    return np.random.uniform(params['min'], params['max'], params['chunk_size'])
+def generate_ind_string_chunk(params: dict, column):
+    if not params['categorical']:
+        column[~column.isnull()] = column[~column.isnull()].apply(lambda x: utils.generate_random_string(int(x)))
+    return column
 
-def generate_ind_string_chunk(params: dict):
-    length = np.random.randint(params['min'], params['max'])
-    vectorized = np.vectorize(lambda x: utils.generate_random_string(length))
-    data = vectorized(np.arange(params['chunk_size']))
-    return data
+
+def uniform_sampling_within_a_bin(params, binning_index):
+    binning_index = int(binning_index)
+    if binning_index == len(params['distribution_bins']):
+        return np.nan
+    elif params['categorical']:
+        return params['distribution_bins'][binning_index]
+    else:
+        bins = params['distribution_bins'].copy()
+        bins.append(2 * bins[-1] - bins[-2])
+        return uniform(bins[binning_index], bins[binning_index + 1])
